@@ -19,9 +19,19 @@ def main(request, symbol):
     
 
     df = pd.read_sql(
-        sql=f"SELECT * FROM ohlc where symbol = '{symbol}' ORDER BY start_datetime",
-        con=CONNECTION_STRING)[-200:]
+        sql=f"""SELECT * FROM ohlc
+                JOIN candlestick
+                ON ohlc.id = candlestick.ohlc_id
+                where symbol = '{symbol}' ORDER BY start_datetime""",
+        con=CONNECTION_STRING)[-300:-100]
     df["start_datetime"] = pd.to_datetime(df["start_datetime"])
+
+    window_size = 12
+    df['support'] = df['low'].rolling(window=window_size).min()
+    df['resistance'] = df['high'].rolling(window=window_size).max()
+    new_df = df[df['min_o1']==True]
+    # new_df['support'] = new_df['low'].rolling(window=2).min()
+    # df['support'] = (df['low']*df['min_o1']).rolling(window=window_size).sum()/df['min_o1'].rolling(window=window_size).sum()
 
     inc = df.close > df.open
     dec = df.open > df.close
@@ -38,7 +48,10 @@ def main(request, symbol):
     p.vbar(df.start_datetime[dec], w, df.open[dec], df.close[dec], fill_color="#F2583E", line_color="black")
 
     # p.hbar(0.075, 0.01, df.start_datetime[inc], df.start_datetime[inc], fill_color="#F2583E", line_color="black")
-    p.line([df.start_datetime.min(), df.start_datetime.max()], [0.075, 0.075], line_width=2, legend_label='support')
+    # p.line([df.start_datetime.min(), df.start_datetime.max()], [0.075, 0.075], line_width=2, legend_label='support')
+    p.line(df.start_datetime, df.support, line_width=2, legend_label='support')
+    # p.line(new_df.start_datetime, new_df.support, line_width=2, legend_label='support')
+    p.line(df.start_datetime, df.resistance, line_width=2, legend_label='resistance',  line_color="#ff5555")
     
 
     return HttpResponse(file_html(p, CDN, "my plot"))

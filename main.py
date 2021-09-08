@@ -35,6 +35,18 @@ def _run_symbols_job():
         symbol_br.insert_or_update_symbol_table()
         time.sleep(DAY)
 
+def fill_candlestick():
+    # add candlestick features to candlestick table
+    # for TRX-USDT
+    candlestick_br = CandleStickBR('TRX-USDT', '30min')
+    candlestick_br.get_raw_df()
+    candlestick_br.add_features()
+    candlestick_br.insert_or_update_candlestick_table()
+    # for VRA-USDT
+    candlestick_br = CandleStickBR('VRA-USDT', '30min')
+    candlestick_br.get_raw_df()
+    candlestick_br.add_features()
+    candlestick_br.insert_or_update_candlestick_table()
 
 def _run_ohlc_job():
     logging.warning('Started OHLC reading job from API ...')  # will print a message to the console
@@ -46,16 +58,7 @@ def _run_ohlc_job():
             interval='30min',
             start=int(time.time()-365*DAY),
             end=int(time.time()))
-        # add candlestick features to candlestick table
-        # for TRX-USDT
-        candlestick_br = CandleStickBR('TRX-USDT', '30min')
-        candlestick_br.get_raw_df()
-        candlestick_br.add_features()
-        candlestick_br.insert_or_update_candlestick_table()
-        candlestick_br = CandleStickBR('VRA-USDT', '30min')
-        candlestick_br.get_raw_df()
-        candlestick_br.add_features()
-        candlestick_br.insert_or_update_candlestick_table()
+        fill_candlestick()
         time.sleep(HOUR)
 
         
@@ -84,5 +87,6 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    # run()
     # _run_ohlc_job()
+    fill_candlestick()
