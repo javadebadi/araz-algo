@@ -8,10 +8,18 @@ class CandleStickDM:
     def set(self, data: dict):
         self.ohlc_id = data.get('ohlc_id')
         self.length = data.get('length')
+        self.min_o1 = data.get('min_o1')
+        self.min_o2 = data.get('min_o2')
+        self.max_o1 = data.get('max_o1')
+        self.max_o2 = data.get('max_o2')
 
     def __str__(self) -> str:
         s = ""
         s += f"length = {self.length}\n"
+        s += f"min_o1 = {self.min_o1}\n"
+        s += f"min_o2 = {self.min_o2}\n"
+        s += f"max_o1 = {self.max_o1}\n"
+        s += f"max_o2 = {self.max_o2}\n"
         return s
 
 
