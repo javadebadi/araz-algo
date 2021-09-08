@@ -31,4 +31,4 @@ class OHLCAdmin(admin.ModelAdmin):
 @admin.register(CandleStick)
 class CandleStickAdmin(admin.ModelAdmin):
     model = CandleStick
-    list_display = ('ohlc', 'length')
+    list_display = ('ohlc', 'min_o1', 'min_o2', 'max_o1', 'max_o2', 'length')

@@ -9,6 +9,10 @@ class CandleStick(models.Model):
         on_delete=models.CASCADE
     )
     length = models.FloatField()
+    min_o1 = models.BooleanField() # order 1 minimum
+    min_o2 = models.BooleanField() # order 2 minimum
+    max_o1 = models.BooleanField(null=True) # order 1 maximum
+    max_o2 = models.BooleanField(null=True) # order 2 maximum
 
 
     class Meta:
