@@ -49,22 +49,14 @@ class RegressionTimeStamps():
         return self.df 
     
     def back_extrapolate(self, from_timestamp, col_name='value'):
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>1")
         timestamps, X = self._generate_timestamps([from_timestamp, self.timestamps[0]])
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>2")
         timestamps = timestamps[:-1]
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>3")
         X = X[:-1]
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>4")
         if len(timestamps) == 0:
             self.df = None
-            print("YESSSSSSSSSSSSSSSSSSSS")
             return None
-        print(timestamps)
         yhats = self.reg.predict(np.arange(len(timestamps)).reshape(len(timestamps),1))
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>5")
         self.df  = pd.DataFrame(data={col_name:yhats}, index=timestamps)
-        print(self.df.index)
         return self.df
     
     def df_to_dict(self, col_name):
