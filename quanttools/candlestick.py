@@ -245,7 +245,6 @@ class CandlestickTimesSeries:
         self._df['min_o2'] = self._df['Candlesticks'].apply(lambda item: item.min_o2)
         self._df['max_o1'] = self._df['Candlesticks'].apply(lambda item: item.max_o1)
         self._df['max_o2'] = self._df['Candlesticks'].apply(lambda item: item.max_o2)
-        print(self._df[['min_o1']].head())
         # add longness
         # self._df['longness'] = numpy.nan
         # self._df['longness'][1:] = self._df['Candlesticks'][1:] / self._df['Candlesticks'].shift(1)[1:]
