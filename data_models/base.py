@@ -22,5 +22,5 @@ class BaseDMList:
     def __str__(self) -> str:
         s = ""
         for dm_obj in self.collection:
-            print(dm_obj)
+            s += dm_obj.__str__()
         return s

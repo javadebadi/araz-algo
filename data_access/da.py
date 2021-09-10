@@ -123,3 +123,30 @@ class CandleStickDA:
             self.get_query_string_of_raw_symbol_interval_data(symbol, interval),
             con=CONNECTION_STRING
             )
+
+    def get_df(self, symbol, interval, to_start_unix_time=None):
+        return pd.read_sql(
+            f"""SELECT  ohlc_id,
+                        symbol,
+                        start_unix_time,
+                        start_datetime,
+                        interval,
+                        open,
+                        high,
+                        low,
+                        close,
+                        volume,
+                        amount,
+                        min_o1,
+                        max_o1,
+                        min_o2,
+                        max_o2
+                    FROM v_candlestick
+                    WHERE 
+                        symbol = '{symbol}'
+                        and
+                        interval = '{interval}'
+                        {'' if (to_start_unix_time is None) else f'and start_unix_time < {to_start_unix_time} ' }
+            """,
+            con=CONNECTION_STRING
+        )
