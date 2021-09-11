@@ -150,3 +150,23 @@ class CandleStickDA:
             """,
             con=CONNECTION_STRING
         )
+
+
+class OrderDA:
+    """A class to handle Order tables"""
+    def insert_or_update_if_exists(self, values: list):
+        assert isinstance(values, list)
+        
+        with engine.begin() as con:
+            order_table = Table('order', metadata, autoload=True, autoload_with=engine)
+            for value in values:
+                select_stmt = select([order_table]).where(
+                    order_table.columns.order_id==value['order_id']
+                )
+                if con.execute(select_stmt).fetchall():
+                    stmt = update(order_table).where(
+                    order_table.columns.order_id==value['order_id']
+                ).values(value)
+                else:
+                    stmt = insert(order_table).values([value])
+                con.execute(stmt)

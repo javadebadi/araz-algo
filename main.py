@@ -13,7 +13,7 @@ from datetime import (
 from multiprocessing import Process
 from quanttools.strategy import RegressionSupportResistanceStrategy
 import time
-    
+from br import OrderBR
 import logging
 logging.basicConfig(filename='myapp.log', level=logging.DEBUG, format='%(asctime)s %(message)s')
 
@@ -25,6 +25,13 @@ START_TIME = datetime(2021,9,6,0,31,0)
 timedelta(minutes=30)
 
 
+
+def _run_get_orders():
+    while True:
+        order_br = OrderBR()
+        order_br.insert_or_update_order_table(limit=500)
+        time.sleep(120)
+    
 def switch_bool(bool_var):
     bool_var = not bool_var
 
@@ -40,7 +47,7 @@ def _run_symbols_job():
 
 
 def run_regression_strategy():
-    lr_strategy = RegressionSupportResistanceStrategy(symbol='FTM-USDT', interval='30min')
+    lr_strategy = RegressionSupportResistanceStrategy(symbol='ADA-USDT', interval='30min')
     lr_strategy.set_apply_unix_time(unix_time=time.time())
     lr_strategy.load_historical_data()
     lr_strategy.set_strategy_hyperparameters(
@@ -63,8 +70,6 @@ def fill_candlestick():
         candlestick_br.get_raw_df()
         candlestick_br.add_features()
         candlestick_br.insert_or_update_candlestick_table()
-
-
 
 def _run_onetime_ohlc_job():
     logging.warning('Started One time OHLC reading job from API ...')  # will print a message to the console
@@ -107,12 +112,16 @@ def run():
     # run ohlc job
     p_ohlc_job = Process(target=_run_ohlc_job)
     p_ohlc_job.start()
+    # run order
+    p_get_orders_job = Process(target=_run_get_orders)
+    p_get_orders_job.start()
 
 
     # join jobs
     p_django.join()
     p_symbols_job.join()
     p_ohlc_job.join()
+    p_get_orders_job.join()
     logging.info('Finished')
 
 

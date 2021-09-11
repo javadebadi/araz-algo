@@ -104,13 +104,13 @@ class RegressionSupportResistanceStrategy:
         support_value = self.predictions['support']['value']
         resistance_value = self.predictions['resistance']['value']
 
-        if is_almost_equal(last_low, support_value, 0.01):
+        if is_almost_equal(last_low, support_value, 0.005):
             logging.warning("The recent low and support are nearly equal")
             logging.warning(f"POSTION: BUY {self.symbol} at {support_value}")
             # kucoin
             try:
-                order_id = client.create_limit_order(f'{self.symbol}', client.SIDE_BUY, str(round(support_value,4)), '20')
-                print(order_id)
+                # order_id = client.create_limit_order(f'{self.symbol}', client.SIDE_BUY, str(round(support_value,4)), '20')
+                # print(order_id)
                 logging.warning(f"SET BUY: SUCCESS")
                 time.sleep(1.5*60*60)
             except:
@@ -120,11 +120,11 @@ class RegressionSupportResistanceStrategy:
             if last_low < support_value:
                 logging.warning(f"POSITION: *DANGER* if things go bad sell some {self.symbol} to stop loss")
             else:
-                if is_almost_equal(last_close, resistance_value, 0.05):
+                if is_almost_equal(last_close, resistance_value, 0.01):
                     logging.warning(f"POSITION: SELL {self.symbol} at {resistance_value}")
                 try:
-                    order_id = client.create_limit_order(f'{self.symbol}', client.SIDE_SELL, str(round(resistance_value,4)), '20')
-                    print(order_id)
+                    # order_id = client.create_limit_order(f'{self.symbol}', client.SIDE_SELL, str(round(resistance_value,4)), '20')
+                    # print(order_id)
                     logging.warning(f"SET SELL: SUCCESS")
                     time.sleep(1.5*60*60)
                 except:
