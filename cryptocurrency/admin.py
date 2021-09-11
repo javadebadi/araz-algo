@@ -5,6 +5,8 @@ from .models import (
     WatchList,
     OHLC,
     CandleStick,
+    FeeCurrency,
+    Order,
 )
 from cryptocurrency import models
 
@@ -32,3 +34,16 @@ class OHLCAdmin(admin.ModelAdmin):
 class CandleStickAdmin(admin.ModelAdmin):
     model = CandleStick
     list_display = ('ohlc', 'min_o1', 'min_o2', 'max_o1', 'max_o2', 'length')
+
+@admin.register(FeeCurrency)
+class FeeCurrencyAdmin(admin.ModelAdmin):
+    model = FeeCurrency
+    list_display = ('fee_currency', )
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    model = Order
+    list_display = ('order_id', 'price', 'size', 'funds', 'deal_funds', 'deal_size', 'fee')
+    # list_display = ('order_id', 'symbol', 'user_id', 'price', 'size', 'funds', 'fee', 'deal_size', 'deal_funds')
+    list_filter = ('symbol', 'is_active')
+

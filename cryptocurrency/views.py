@@ -90,9 +90,9 @@ def main(request, symbol, min=None, max=None, minsize=None, maxsize=None):
     window_size = 12
     # df['support'] = df['low'].rolling(window=window_size).min()
     df['resistance'] = df['high'].rolling(window=window_size).max()
-    new_df = df[df['min_o1']==True].copy()
-    new_df= LineSegmentTS(new_df['start_datetime'].to_list(), new_df['low'].to_list()).to_df('support', 'start_datetime')
-    new_df["start_datetime"] = pd.to_datetime(new_df.index)
+    # new_df = df[df['min_o1']==True].copy()
+    # new_df= LineSegmentTS(new_df['start_datetime'].to_list(), new_df['low'].to_list()).to_df('support', 'start_datetime')
+    # new_df["start_datetime"] = pd.to_datetime(new_df.index)
 
     reg_ts = RegressionTimeStampsTS(
         df,
