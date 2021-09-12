@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models.fields import AutoField
 from django.utils import tree
 from .symbol import Symbol
+from .watch_list import WatchList
 from django.contrib.auth.models import User
 
 class FeeCurrency(models.Model):
@@ -92,4 +93,41 @@ class Order(models.Model):
         ordering = ('created_at', )
 
     def __str__(self) -> str:
+        return self.order_id
+
+
+class Position(models.Model):
+    position_id = models.AutoField(
+        primary_key=True
+        )
+    order_id = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True,
+        unique=True
+        )
+    symbol = models.ForeignKey(
+        WatchList,
+        on_delete=models.CASCADE,
+        db_column='symbol'
+        )
+    SIDE_CHOICES = (
+        ('buy', 'buy'),
+        ('sell', 'sell'),
+    )
+    side = models.CharField(
+        max_length=10,
+        choices=SIDE_CHOICES
+    )
+    size = models.FloatField()
+    price =  models.FloatField()
+    strategy = models.CharField(
+        max_length=32,
+        null=True,
+        blank=True
+        )
+
+
+
+    def __str__(self)-> str:
         return self.order_id
