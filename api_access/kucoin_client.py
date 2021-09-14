@@ -44,18 +44,31 @@ class KucoinClient(Client):
         page=None,
         limit=None
         ):
-        results = super().get_orders(
-            symbol=symbol,
-            status=status,
-            side=side,
-            order_type=order_type,
-            start=start,
-            end=end,
-            page=page,
-            limit=limit
-            )['items']
+        if status is None:
+            results_active = super().get_orders(
+                symbol=symbol,
+                status='active',
+                side=side,
+                order_type=order_type,
+                start=start,
+                end=end,
+                page=page,
+                limit=limit
+                )['items']
+            results_done= super().get_orders(
+                symbol=symbol,
+                status='done',
+                side=side,
+                order_type=order_type,
+                start=start,
+                end=end,
+                page=page,
+                limit=limit
+                )['items']
         new_results = []
-        for result in results:
+        for result in results_active:
+            new_results.append(self._translate_order_dict(result))
+        for result in results_done:
             new_results.append(self._translate_order_dict(result))
         return new_results
 
