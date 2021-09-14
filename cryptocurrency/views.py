@@ -8,6 +8,7 @@ from website.settings import BASE_DIR
 from bokeh.embed import file_html
 from bokeh.resources import CDN
 import numpy as np
+from quanttools.strategy import reg_model
 
 import os
 
@@ -115,6 +116,10 @@ def main(request, symbol, min=None, max=None, minsize=None, maxsize=None):
     new_max_df['max_o1_reg_support'] = new_max_df['reg_pred']
 
 
+    # field regression
+    low_reg_df = reg_model(symbol, 'low', '30min', 24, 12)
+    high_reg_df = reg_model(symbol, 'high', '30min', 24, 12)
+
 
     TOOLTIPS = [
     ("index", "$index"),
@@ -145,9 +150,11 @@ def main(request, symbol, min=None, max=None, minsize=None, maxsize=None):
     # p.line(df.start_datetime, df.support, line_width=2, legend_label='support')
     # p.line(new_df.start_datetime, new_df.support, line_width=2, legend_label='support')
     p.line(new_df.start_datetime, new_df.min_o1_reg_support, line_width=2, legend_label='support')
+    p.line(low_reg_df.start_datetime, low_reg_df.low, line_width=2, legend_label='lows regression', line_color='#44FF77')
     # p.line(new_df.start_datetime, new_df.support, line_width=2, legend_label='support')
     # p.line(df.start_datetime, df.resistance, line_width=2, legend_label='resistance',  line_color="#ff5555")
     p.line(new_max_df.start_datetime, new_max_df.max_o1_reg_support, line_width=2, legend_label='resistance', line_color="#ff5555")
+    p.line(high_reg_df.start_datetime, high_reg_df.high, line_width=2, legend_label='high regression', line_color='#FF3311')
     
 
     return HttpResponse(file_html(p, CDN, "my plot"))

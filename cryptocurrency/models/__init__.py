@@ -5,4 +5,5 @@ from .candlestick import CandleStick
 from .order import (
     FeeCurrency,
     Order,
+    Position,
 )

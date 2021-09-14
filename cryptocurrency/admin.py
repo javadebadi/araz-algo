@@ -7,6 +7,7 @@ from .models import (
     CandleStick,
     FeeCurrency,
     Order,
+    Position,
 )
 from cryptocurrency import models
 
@@ -46,4 +47,10 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('order_id', 'price', 'size', 'funds', 'deal_funds', 'deal_size', 'fee')
     # list_display = ('order_id', 'symbol', 'user_id', 'price', 'size', 'funds', 'fee', 'deal_size', 'deal_funds')
     list_filter = ('symbol', 'is_active')
+
+@admin.register(Position)
+class PositionAdmin(admin.ModelAdmin):
+    model = Position
+    list_display = ('position_id', 'price', 'size', 'symbol', 'strategy')
+    list_filter = ('symbol', 'strategy')
 

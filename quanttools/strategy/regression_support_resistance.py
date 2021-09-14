@@ -94,6 +94,21 @@ class RegressionSupportResistanceStrategy:
         }
         return  self.predictions
 
+    def predict_all(self):
+        predictions = []
+        for i in range(24):
+            new_unix_time = self.new_apply_unix_time + i*60*30
+            new_datetime = datetime.fromtimestamp(new_unix_time).strftime(format = '%Y/%m/%d %H:%M')
+            support = round(self.support_reg.predict([[new_unix_time]]).reshape(-1,1).flatten()[0],4)
+            reistance = round(self.resistance_reg.predict([[new_unix_time]]).reshape(-1,1).flatten()[0],4)
+            result = (new_unix_time, new_datetime, support, reistance)
+            predictions.append(result)
+            print(result)
+
+        # print(predictions)
+
+
+
 
     def take_positions(self):
         self.fit()

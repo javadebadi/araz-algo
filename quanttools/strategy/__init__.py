@@ -1,1 +1,2 @@
 from .regression_support_resistance import RegressionSupportResistanceStrategy
+from .field_regression import reg_model

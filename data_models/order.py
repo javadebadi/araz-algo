@@ -37,7 +37,7 @@ class OrderDM:
         self.created_at =  int(data.get('create_at')) if (data.get('create_at', None) is not None) else None
         self.trade_type = data.get('trade_type')
         self.cancel_exist = bool(data.get('cancel_exist'))
-        self.user_id = "testadmin" # TO DO TODO
+        self.user_id = 1 # TO DO TODO
 
     def __str__(self) -> str:
         return self.symbol

@@ -126,8 +126,18 @@ class Position(models.Model):
         null=True,
         blank=True
         )
-
-
+    position_type = models.CharField(
+        max_length=16,
+        null=True,
+        blank=True
+    )
+    position_time = models.IntegerField()
 
     def __str__(self)-> str:
-        return self.order_id
+        return self.position_id
+
+    class Meta:
+        db_table = 'position'
+        verbose_name = 'Position'
+        verbose_name_plural = 'Positions'
+        ordering = ('order_id', )

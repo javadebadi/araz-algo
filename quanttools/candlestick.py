@@ -110,28 +110,28 @@ class CandleStickNode:
 
     def has_lower_low_than_prev_low(self):
         """Checks wether the low of this candlestick is smaller than the low of its previous"""
-        if self.prev is None:
+        if self.prev is None or self.prev is numpy.nan:
             return False
         else:
             return self.low <= self.prev.low
 
     def has_higher_high_than_prev_high(self):
         """Checks wether the high of this candlestick is bigger than the high of its previous"""
-        if self.prev is None:
+        if self.prev is None or self.prev is numpy.nan:
             return False
         else:
             return self.high >= self.prev.high
 
     def has_lower_low_than_next_low(self):
         """Checks wether the low of this candlestick is smaller than low of the its next"""
-        if self.next is None:
+        if self.next is None or self.next is numpy.nan:
             return False
         else:
             return self.low <= self.next.low
 
     def has_higher_high_than_next_high(self):
         """Checks wether the high of this candlestick is bigger than high of the its next"""
-        if self.next is None:
+        if self.next is None or self.next is numpy.nan:
             return False
         else:
             return self.high >= self.next.high
@@ -139,28 +139,28 @@ class CandleStickNode:
 
     def has_prev_lower_low_than_its_prev_low(self):
         """checks wether the low of this candlestick is smaller than second previous candlestick low"""
-        if self.prev.prev is None:
+        if self.prev.prev is None or self.prev.prev is numpy.nan:
             return False
         else:
             return self.prev.has_lower_low_than_prev_low()
 
     def has_prev_higher_high_than_its_prev_high(self):
         """checks wether the high of this candlestick is bigger than second previous candlestick high"""
-        if self.prev.prev is None:
+        if self.prev.prev is None or self.prev.prev is numpy.nan:
             return False
         else:
             return self.prev.has_higher_high_than_prev_high()
 
     def has_next_lower_low_than_its_next_low(self):
         """checks wether the low of this candlestick is smaller than second next candlestick"""
-        if self.next.next is None:
+        if self.next.next is None or self.next.next is numpy.nan:
             return False
         else:
             return self.next.has_lower_low_than_next_low()
 
     def has_next_higher_high_than_its_next_high(self):
         """checks wether the high of this candlestick is bigger than second next candlestick high"""
-        if self.next.next is None:
+        if self.next.next is None or self.next.next is numpy.nan:
             return False
         else:
             return self.prev.has_higher_high_than_next_high()
@@ -180,6 +180,9 @@ class CandleStickNode:
     @property
     def max_o2(self):
         return self.max_o1 and self.has_prev_higher_high_than_its_prev_high() and self.has_next_higher_high_than_its_next_high()
+
+    def __str__(self):
+        return str(self.sorted_ohlc)
 
 
 class CandlestickTimesSeries:
@@ -217,8 +220,14 @@ class CandlestickTimesSeries:
             candle = row['Candlesticks']
             if index == 0:
                 candle.next = row['Candlesticks_next']
+                candle.prev = None
+                if row['Candlesticks_next'] == numpy.nan:
+                    candle.next = None
             elif index == len(self._df) - 1:
                 candle.prev = row['Candlesticks_prev']
+                candle.next = None
+                if row['Candlesticks_next'] == numpy.nan:
+                    candle.prev = None
             else:
                 candle.next = row['Candlesticks_next']
                 candle.prev = row['Candlesticks_prev']
@@ -257,4 +266,7 @@ class CandlestickTimesSeries:
 
     def to_values(self):
         return self._df.to_dict(orient='records')
+
+    def __getitem__(self, key):
+        return self._df[key]
         
