@@ -51,13 +51,15 @@ def run_regression_strategy():
     lr_strategy.set_apply_unix_time(unix_time=time.time())
     lr_strategy.load_historical_data()
     lr_strategy.set_strategy_hyperparameters(
-        support_train_data_size=15,
-        resistance_train_data_size=15,
+        support_train_data_size=10,
+        resistance_train_data_size=10,
         min_kind='min_o1',
         max_kind='max_o1'
         )
     # print(lr_strategy)
-    lr_strategy.take_positions()
+    # lr_strategy.take_positions()
+    lr_strategy.fit()
+    lr_strategy.predict_all()
 
 def fill_candlestick():
     # add candlestick features to candlestick table
