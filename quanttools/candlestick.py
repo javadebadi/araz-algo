@@ -24,6 +24,7 @@ class CandleStickNode:
             self.set_none()
         self.prev = None
         self.next = None
+        self.iterval = None # TODO
 
     def sorted_ohlc(self):
         return self.sorted_ohlc
@@ -61,6 +62,11 @@ class CandleStickNode:
     # computational methods
     def __len__(self):
         return self.high - self.low
+
+    @property
+    def dimensionless_length(self):
+        """a method which is a metric for dimensionless length"""
+        return self.__len__()/self.low
 
     @property
     def upper_shadow(self):
@@ -107,6 +113,95 @@ class CandleStickNode:
         10
         """
         return self.__len__() // other.__len__()
+
+    def has_higher_close_than_nth_next_close(self, n):
+        assert n >= 1
+        next = self.next
+        while n >= 1:
+            if next is None or next is numpy.nan:
+                return False
+            else:
+                nth_next_close = next.close
+                next = next.next
+                n -= 1
+        return self.close > nth_next_close
+
+    def has_lower_close_than_nth_next_close(self, n):
+        assert n >= 1
+        next = self.next
+        while n >= 1:
+            if next is None or next is numpy.nan:
+                return False
+            else:
+                nth_next_close = next.close
+                next = next.next
+                n -= 1
+        return self.close < nth_next_close
+
+    def has_higher_close_than_nth_prev_close(self, n):
+        assert n >= 1
+        prev = self.prev
+        while n >= 1:
+            if prev is None or prev is numpy.nan:
+                return False
+            else:
+                nth_prev_close = prev.close
+                prev = prev.prev
+                n -= 1
+        return self.close > nth_prev_close
+
+    def has_lower_close_than_nth_prev_close(self, n):
+        assert n >= 1
+        prev = self.prev
+        while n >= 1:
+            if prev is None or prev is numpy.nan:
+                return False
+            else:
+                nth_prev_close = prev.close
+                prev = prev.prev
+                n -= 1
+        return self.close < nth_prev_close
+
+    @property
+    def is_support(self):
+        """returns True if the candle close price is a support (minimum of next and prev closes)"""
+        return self.has_lower_close_than_nth_next_close(1) and self.has_lower_close_than_nth_prev_close(1)
+
+    @property
+    def is_resistance(self):
+        """returns True if the candle close price is a resistance (maximum of next and prev closes)"""
+        return self.has_higher_close_than_nth_next_close(1) and self.has_higher_close_than_nth_prev_close(1)
+
+    def support_level(self, m :int):
+        level = 0
+        assert m >= 2
+        for i in range(1, m):
+            if (
+                self.has_lower_close_than_nth_next_close(i)
+                and
+                self.has_lower_close_than_nth_prev_close(i)
+            ):
+                level = i
+            else:
+                return level
+        return level
+
+    def resistance_level(self, m: int):
+        level = 0
+        assert m >= 2
+        for i in range(1, m):
+            if (
+                self.has_higher_close_than_nth_next_close(i)
+                and
+                self.has_higher_close_than_nth_prev_close(i)
+            ):
+                level = i
+            else:
+                return level
+        return level
+
+
+
 
     def has_lower_low_than_prev_low(self):
         """Checks wether the low of this candlestick is smaller than the low of its previous"""
@@ -164,6 +259,28 @@ class CandleStickNode:
             return False
         else:
             return self.prev.has_higher_high_than_next_high()
+
+    @property
+    def length_ratio_prev(self):
+        """finds the ratio of lenght of this candle relative to prev candle"""
+        if self.prev is None or self.prev is numpy.nan:
+            return None
+        else:
+            if self.prev.__len__() == 0:
+                return -1
+            else:
+                return self.__len__() / self.prev.__len__()
+
+    @property
+    def length_ratio_next(self):
+        """finds the ratio of lenght of this candle relative to next candle"""
+        if self.next is None or self.next is numpy.nan:
+            return None
+        else:
+            if self.next.__len__() == 0:
+                return -1
+            else:
+                return self.__len__() / self.next.__len__() 
 
     @property
     def min_o1(self):
@@ -231,12 +348,14 @@ class CandlestickTimesSeries:
             else:
                 candle.next = row['Candlesticks_next']
                 candle.prev = row['Candlesticks_prev']
-            self._df.loc[index:index+1, 'Candlesticks'] = candle
+            self._df.loc[index, 'Candlesticks'] = candle
         del self._df['Candlesticks_prev']
         del self._df['Candlesticks_next']
 
     def set_df(self, df):
         self._df = df
+        self._df['datex'] = df.index
+        self._df.sort_values('datex', ascending=True, inplace=True)
         self._df['Candlesticks'] = df.apply(
             lambda row: CandleStickNode(row['open'], row['high'], row['low'], row['close'], row['volume']),
             axis=1
@@ -254,7 +373,14 @@ class CandlestickTimesSeries:
         self._df['min_o2'] = self._df['Candlesticks'].apply(lambda item: item.min_o2)
         self._df['max_o1'] = self._df['Candlesticks'].apply(lambda item: item.max_o1)
         self._df['max_o2'] = self._df['Candlesticks'].apply(lambda item: item.max_o2)
+        self._df['is_support'] = self._df['Candlesticks'].apply(lambda item: item.is_support)
+        self._df['is_resistance'] = self._df['Candlesticks'].apply(lambda item: item.is_resistance)
+        self._df['support_level'] = self._df['Candlesticks'].apply(lambda item: item.support_level(1000))
+        self._df['resistance_level'] = self._df['Candlesticks'].apply(lambda item: item.resistance_level(1000))
+        self._df['dimensionless_length'] = self._df['Candlesticks'].apply(lambda item: item.dimensionless_length)
         # add longness
+        self._df['length_ratio_prev'] = self._df['Candlesticks'].apply(lambda item: item.length_ratio_prev)
+        self._df['length_ratio_next'] = self._df['Candlesticks'].apply(lambda item: item.length_ratio_next)
         # self._df['longness'] = numpy.nan
         # self._df['longness'][1:] = self._df['Candlesticks'][1:] / self._df['Candlesticks'].shift(1)[1:]
         # self._df['longness_signed'] = self._df.apply(lambda item: int(item['is_hollow'])*item['longness'] - int(item['is_filled'])*item['longness'], axis=1)
