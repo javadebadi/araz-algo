@@ -114,53 +114,107 @@ class CandleStickNode:
         """
         return self.__len__() // other.__len__()
 
-    def has_higher_close_than_nth_next_close(self, n):
-        assert n >= 1
-        next = self.next
-        while n >= 1:
-            if next is None or next is numpy.nan:
-                return False
-            else:
-                nth_next_close = next.close
-                next = next.next
-                n -= 1
-        return self.close > nth_next_close
+    def __getitem__(self, attr):
+        if attr == 'close':
+            return self.close
+        elif attr == 'open':
+            return self.open
+        elif attr == 'low':
+            return self.low
+        elif attr == 'high':
+            return self.high
+        elif attr == 'prev':
+            return self.prev
+        elif attr == 'next':
+            return self.next
+        else:
+            raise NotImplementedError(f"the '{attr}' is not a valid access key")
 
-    def has_lower_close_than_nth_next_close(self, n):
+    def _compare_seq(
+        self,
+        how,
+        other_candle_direction,
+        this_field='close',
+        other_field='open',
+        n=1
+        ):
+        """Determines whether this field of this candle is smallert than other field
+        of nth next or prev candle sequentially. Sequentially mean this should stand for
+        all prev or next candles
+        """
         assert n >= 1
-        next = self.next
+        this = self
         while n >= 1:
-            if next is None or next is numpy.nan:
+            if this._compare(how, other_candle_direction, this_field, other_field, 1) is False:
                 return False
-            else:
-                nth_next_close = next.close
-                next = next.next
-                n -= 1
-        return self.close < nth_next_close
+            this = this[other_candle_direction]
+            n = n - 1
+        return True
 
-    def has_higher_close_than_nth_prev_close(self, n):
+    def _compare(
+        self,
+        how,
+        other_candle_direction,
+        this_field='close',
+        other_field='open',
+        n=1
+        ):
+        """Determines whether this field of this candle is smallert than other field
+        of nth next candle
+        """
         assert n >= 1
-        prev = self.prev
-        while n >= 1:
-            if prev is None or prev is numpy.nan:
+        assert how in ('<', '>', '<=', '>=')
+        assert other_candle_direction in ('prev', 'next')
+        other = self.__getitem__(other_candle_direction)
+        while n >=1:
+            if other is None or other is numpy.nan:
                 return False
             else:
-                nth_prev_close = prev.close
-                prev = prev.prev
+                nth_other_field = other[other_field]
+                other = other[other_candle_direction]
                 n -= 1
-        return self.close > nth_prev_close
+        if how == '<':
+            return self[this_field] < nth_other_field
+        elif how == '>':
+            return self[this_field] > nth_other_field
+        else:
+            raise NotImplementedError(f"Not implemented for the give how='{how}'")
 
-    def has_lower_close_than_nth_prev_close(self, n):
-        assert n >= 1
-        prev = self.prev
-        while n >= 1:
-            if prev is None or prev is numpy.nan:
-                return False
-            else:
-                nth_prev_close = prev.close
-                prev = prev.prev
-                n -= 1
-        return self.close < nth_prev_close
+    def has_higher_close_than_nth_next_close(self, n, seq=False):
+        if seq is False:
+            return self._compare('>', 'next', 'close', 'close', n)
+        else:
+            return self._compare_seq('>', 'next', 'close', 'close', n)
+
+    def has_lower_close_than_nth_next_close(self, n, seq=False):
+        if seq is False:
+            return self._compare('<', 'next', 'close', 'close', n)
+        else:
+            return self._compare_seq('<', 'next', 'close', 'close', n)
+
+    def has_higher_close_than_nth_prev_close(self, n, seq=False):
+        if seq is True:
+            return self._compare('>', 'prev', 'close', 'close', n)
+        else:
+            return self._compare_seq('>', 'prev', 'close', 'close', n)
+
+    def has_lower_close_than_nth_prev_close(self, n, seq=False):
+        if seq is True:
+            return self._compare('<', 'prev', 'close', 'close', n)
+        else:
+            return self._compare_seq('<', 'prev', 'close', 'close', n)
+
+    @property
+    def is_swing_high(self):
+        """returns True if the candle is a swing high"""
+        return self._compare_seq('>', 'next', 'high', 'high', 2) and\
+            self._compare_seq('>', 'prev', 'high', 'high', 2)
+
+    @property
+    def is_swing_low(self):
+        """returns True if the candle is a swing low"""
+        return self._compare_seq('<', 'next', 'low', 'low', 2) and\
+            self._compare_seq('<', 'prev', 'low', 'low', 2)
 
     @property
     def is_support(self):
@@ -200,37 +254,21 @@ class CandleStickNode:
                 return level
         return level
 
-
-
-
     def has_lower_low_than_prev_low(self):
         """Checks wether the low of this candlestick is smaller than the low of its previous"""
-        if self.prev is None or self.prev is numpy.nan:
-            return False
-        else:
-            return self.low <= self.prev.low
+        return self._compare('<', 'prev', 'low', 'low', 1)
 
     def has_higher_high_than_prev_high(self):
         """Checks wether the high of this candlestick is bigger than the high of its previous"""
-        if self.prev is None or self.prev is numpy.nan:
-            return False
-        else:
-            return self.high >= self.prev.high
+        return self._compare('>', 'prev', 'high', 'high', 1)
 
     def has_lower_low_than_next_low(self):
         """Checks wether the low of this candlestick is smaller than low of the its next"""
-        if self.next is None or self.next is numpy.nan:
-            return False
-        else:
-            return self.low <= self.next.low
+        return self._compare('<', 'next', 'low', 'low', 1)
 
     def has_higher_high_than_next_high(self):
         """Checks wether the high of this candlestick is bigger than high of the its next"""
-        if self.next is None or self.next is numpy.nan:
-            return False
-        else:
-            return self.high >= self.next.high
-
+        return self._compare('>', 'next', 'high', 'high', 1)
 
     def has_prev_lower_low_than_its_prev_low(self):
         """checks wether the low of this candlestick is smaller than second previous candlestick low"""
@@ -258,7 +296,7 @@ class CandleStickNode:
         if self.next.next is None or self.next.next is numpy.nan:
             return False
         else:
-            return self.prev.has_higher_high_than_next_high()
+            return self.next.has_higher_high_than_next_high()
 
     @property
     def length_ratio_prev(self):
@@ -367,7 +405,7 @@ class CandlestickTimesSeries:
         self._df['upper_shadow'] = self._df['Candlesticks'].apply(lambda item: item.upper_shadow)
         self._df['lower_shadow'] = self._df['Candlesticks'].apply(lambda item: item.lower_shadow)
         self._df['real_body'] = self._df['Candlesticks'].apply(lambda item: item.real_body)
-        self.df['is_hollow'] = self._df['Candlesticks'].apply(lambda item: item.is_hollow)
+        self._df['is_hollow'] = self._df['Candlesticks'].apply(lambda item: item.is_hollow)
         self._df['is_filled'] = self._df['Candlesticks'].apply(lambda item: item.is_filled)
         self._df['min_o1'] = self._df['Candlesticks'].apply(lambda item: item.min_o1)
         self._df['min_o2'] = self._df['Candlesticks'].apply(lambda item: item.min_o2)
@@ -378,21 +416,17 @@ class CandlestickTimesSeries:
         self._df['support_level'] = self._df['Candlesticks'].apply(lambda item: item.support_level(1000))
         self._df['resistance_level'] = self._df['Candlesticks'].apply(lambda item: item.resistance_level(1000))
         self._df['dimensionless_length'] = self._df['Candlesticks'].apply(lambda item: item.dimensionless_length)
-        # add longness
         self._df['length_ratio_prev'] = self._df['Candlesticks'].apply(lambda item: item.length_ratio_prev)
         self._df['length_ratio_next'] = self._df['Candlesticks'].apply(lambda item: item.length_ratio_next)
-        # self._df['longness'] = numpy.nan
-        # self._df['longness'][1:] = self._df['Candlesticks'][1:] / self._df['Candlesticks'].shift(1)[1:]
-        # self._df['longness_signed'] = self._df.apply(lambda item: int(item['is_hollow'])*item['longness'] - int(item['is_filled'])*item['longness'], axis=1)
-        # for index in range(len(self._df)):
-        #     if index == 0:
-        #         self._df['longness'].iloc[0] = None
-        #     else:
-        #         self._df['longness'].iloc[index] = self._df['Candlesticks'].iloc[index]/self._df['Candlesticks'].iloc[index-1]
+        self._df['is_swing_high'] = self._df['Candlesticks'].apply(lambda item: item.is_swing_high)
+        self._df['is_swing_low'] = self._df['Candlesticks'].apply(lambda item: item.is_swing_low)
 
     def to_values(self):
         return self._df.to_dict(orient='records')
 
     def __getitem__(self, key):
         return self._df[key]
-        
+
+    @property
+    def columns(self):
+        return self._df.columns
